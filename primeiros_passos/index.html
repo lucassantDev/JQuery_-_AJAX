@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="estilo.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+    <center>
+        <h1>
+            Gerenciamento de Inventários
+        </h1>
+        <input type="text" id="texto_pesquisado" size="60">
+        <button id='btnPesquisar'>🔎Pesquisar</button>
+    </center>
+
+    <div id="conteudo"> 
+       RESULTADO TEM QUE APARECER AQUI
+    </div>
+
+
+    <div id="escurecer">
+        <img src="carregando.gif" id="imgCarregando">
+    </div>
+
+    <div id="escurecer2">
+        <div id="formulario">
+            <button id="btnFechar"> x </button>
+            <h1>Editar/Deletar</h1>
+            Código: <input type="text" id="caixaId" disabled> <br> <br>
+            Descrição: <input type="text" id="caixaDescricao"> <br> <br>
+            Categoria: <input type="text" id="caixaCategoria"> <br> <br>
+            Setor:  <select id="caixaSetor">
+                        <option value="">Selecione</option>
+                        <option value="NAD">NAD</option>
+                        <option value="NEP">NEP</option>
+                        <option value="Suporte">Suporte</option>
+                        <option value="Atendimento">Atendimento</option>
+                        <option value="Administração">Administração</option>
+                    </select> <br> <br>
+            <button id="btnSalvar"> Salvar alterações </button>
+            <button id="btnExcluir"> Deletar </button>
+        </div>
+    </div>
+
+
+    <div id="btnAdicionar">
+        +
+    </div> <!-- botão de +-->
+
+
+    <div id="escurecer3">
+        <div id="cadastro">
+            <button id="btnFecharCadastro"> x </button> <br> <br>
+            <h1>Cadastrar item</h1>
+            Descrição: <input id="caixaDescricao2"> <br> <br>
+            Categoria: <input id="caixaCategoria2"> <br> <br>
+            Setor:  <select id="caixaSetor2">
+                        <option value="">Selecione</option>
+                        <option value="NAD">NAD</option>
+                        <option value="NEP">NEP</option>
+                        <option value="Suporte">Suporte</option>
+                        <option value="Atendimento">Atendimento</option>
+                        <option value="Administração">Administração</option> 
+                    </select> <br> <br>
+            <button id="btnCadastrar"> Cadastrar </button>
+        </div>
+    </div>
+
+    <script>
+
+        $("#btnCadastrar").click(function(){
+            $("#escurecer3").hide();
+            $("#escurecer").show();
+
+            var descricao_capturada = $("#caixaDescricao2").val();
+            var setor_capturado = $("#caixaSetor2").val();
+            var categoria_capturada = $("#caixaCategoria2").val();
+
+            $.ajax({
+                url: "inserir.php",
+                method: "POST",
+                data: { descricao_digitada: descricao_capturada,
+                        setor_selecionado: setor_capturado,
+                        categoria: categoria_capturada
+                      },
+                success: function(){
+                    alert("Cadastrado com sucesso!!");
+                    $("#escurecer").hide();
+                    $("#conteudo").html("Carregando...")
+                    $("#conteudo").load("consultar.php");
+
+                    // limpar campos do formulário
+                    $("#caixaDescricao2").val("");
+                    $("#caixaCategoria2").val("");
+                    $("#caixaSetor2").val("Selecione");
+                },
+                error: function(){
+                    alert("Não foi possível cadastrar!");
+                    $("#escurecer").hide();
+                }
+            });
+
+        });
+
+        $("#btnFecharCadastro").click(function(){
+            $("#escurecer3").hide(); // $().hide()-> serve para esconder algo na página
+        });
+
+        $("#btnAdicionar").click(function(){
+            $("#escurecer3").show();
+        });
+
+
+
+        $("#btnSalvar").click(function(){
+            $("#escurecer2").hide();
+            $("escurecer").show();
+            var id_escolhido = $("#caixaId").val();
+            var desc_escolhida = $("#caixaDescricao").val();
+            var setor_escolhido = $("#caixaSetor").val();
+            var cat_escolhida = $("#caixaCategoria").val();
+            $.ajax({
+                url: "atualizar.php",
+                method: "POST",
+                data: {cod: id_escolhido,
+                       desc_nova: desc_escolhida,
+                       cat_nova: setor_escolhido,
+                       setor_novo: cat_escolhida
+                },
+                success: function(resposta){
+                    alert(resposta);
+                    $("#escurecer").hide();
+                    $("conteudo").load("consultar.php"); // $().load -> recarrega a página novamente
+                },
+                error: function(){
+                    alert("Não foi possível concluir a atualização");
+                    $("#escurecer").hide();
+                }
+
+            });
+
+        }); // fim do click btnSalvar
+
+
+        $("#btnExcluir").click(function(){
+            var id_escolhido = $("#caixaId").val();
+            $("#escurecer").show();
+            $("#escurecer2").hide();
+            $.ajax({
+                url: "deletar.php",
+                method: "GET",
+                data: {cod: id_escolhido},
+                success: function(resposta){
+                    alert("Deletado com sucesso!");
+                    $("#escurecer").hide();
+                    $("#conteudo").load("consultar.php")
+                },
+                error: function(){
+                    alert("Não foi possível deletar");
+                    $("#escurecer").hide();
+                }
+            })
+        });// fim do click btnExcluir
+
+
+        $(document).ready(function(){
+            $("#escurecer2").hide();
+            $("#escurecer3").hide();
+            $("#conteudo").load("consultar.php");
+            $("#escurecer").hide();
+            $("#conteudo").html("<img scr='carregando.gif' height='50'")
+        }); // fim document.ready
+
+        
+        $(document).on("click", ".cartoes ", function(){
+            $("#escurecer2").show();
+            
+            var codigo_capturado = $(this).find(".cod_produto").text();
+            var desc_capturado = $(this).find(".desc_produto").text();
+            var setor_capturado = $(this).find(".setor_produto").text();
+            var categoria_capturada = $(this).find(".cat_produto").text();
+            
+            $("#caixaId").val(codigo_capturado);
+            $("#caixaDescricao").val(desc_capturado);
+            $("#caixaSetor").val(setor_capturado);
+            $("#caixaCategoria").val(categoria_capturada);
+        }); // fim do click nos cartões
+
+
+        $("#btnFechar").click(function(){
+            $("#escurecer2").hide();
+        }); // fim do click no botão fechar
+
+
+        $("#btnPesquisar").click(function(){
+            var texto_pesquisado = $("#texto_pesquisado").val();
+            $("#conteudo").html("<img scr='carregando.gif' height='50'")
+            $.ajax({
+                url: 'pesquisar.php',
+                method: 'POST',
+                data: {texto_pesquisado: texto_pesquisado},
+                success: function(resposta){
+                    $("#conteudo").html(resposta);
+                },
+                erro: function(){
+                    alert("Não foi possível pesquisar!");
+                }
+            })
+        })
+    </script>
+
+    
+</body>
+</html>
